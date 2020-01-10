@@ -1,5 +1,4 @@
-#ifndef NSTD_VECTOR_H_INCLUDED
-#define NSTD_VECTOR_H_INCLUDED
+#pragma once
 
 #include <iterator>
 #include <algorithm>
@@ -34,8 +33,8 @@ public:
     vector(const vector& other)                    : vector(other.size_) { std::copy(other.data_, other.data_ + size_, data_); }
     vector(vector&& other)                noexcept : size_(other.size_), capacity_(other.capacity_), data_(other.data_) { other.steal_contents(); }
     vector(std::initializer_list<value_type> vals) : vector(vals.size()) { std::move(vals.begin(), vals.end(), data_); }
-    template <class input_iter>
-    vector(input_iter first, input_iter last)      : vector() {std::copy(first, last, std::back_insert_iterator<vector>(*this)); }
+    template <class InputIter, typename = std::_RequireInputIter<InputIter>>
+    vector(InputIter first, InputIter last)        : vector() { std::copy(first, last, std::back_insert_iterator<vector>(*this)); }
 
     // Destructor
     ~vector() { delete[] data_; }
@@ -66,8 +65,8 @@ public:
     // Assign
     void assign(size_type n, const value_type& val)     { allocate_new_data(n); std::fill(data_, data_ + size_, val);                 }
     void assign(std::initializer_list<value_type> vals) { allocate_new_data(vals.size()); std::copy(vals.begin(), vals.end(), data_); }
-    template <class input_iter>
-    void assign(input_iter first, input_iter last)      { clear(); std::copy(first, last, std::back_insert_iterator<vector>(*this));  }
+    template <class InputIter, typename = std::_RequireInputIter<InputIter>>
+    void assign(InputIter first, InputIter last)        { clear(); std::copy(first, last, std::back_insert_iterator<vector>(*this));  }
 
     // Iterators
     iterator begin()                      noexcept { return data_;         }
@@ -98,14 +97,15 @@ public:
     const_reference front()                  const { return data_[0];         }
     reference back()                               { return data_[size_ - 1]; }
     const_reference back()                   const { return data_[size_ - 1]; }
-    pointer data()                                 { return data_;            }
-    const_pointer data()                     const { return data_;            }
+    pointer data()                        noexcept { return data_;            }
+    const_pointer data()            const noexcept { return data_;            }
     reference at(size_type i)                      { if (i >= size_) throw std::out_of_range(); return data_[i]; }
     const_reference at(size_type i)          const { if (i >= size_) throw std::out_of_range(); return data_[i]; }
 
     // Modifiers
     void clear()                          noexcept { size_ = 0;                      }
-    void push_back(value_type val)                 { expand(); data_[size_++] = val; }
+    void push_back(const value_type& val)          { expand(); data_[size_++] = val; }
+    void push_back(value_type&& val)               { expand(); data_[size_++] = val; }
     void pop_back()                                { --size_;                        }
     void resize(size_type n)                       { reserve(n); size_ = n;          }
     void resize(size_type n, const_reference val)
@@ -151,5 +151,3 @@ private:
     size_type capacity_;
     value_type* data_;
 };
-
-#endif // NSTD_VECTOR_H_INCLUDED
