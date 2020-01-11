@@ -197,7 +197,7 @@ public:
     {
         difference_type offset = first - begin();
         shift_left(last - begin(), last - first);
-        return begin() + offset;
+        return iter_at(offset);
     }
     void resize(size_type cnt)
     {
