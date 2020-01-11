@@ -138,9 +138,14 @@ public:
     void push_back(const_reference val)             { emplace_back(val);            }
     void push_back(rvalue_reference val)            { emplace_back(std::move(val)); }
     void pop_back()                                 { data_[--size_].~value_type(); }
-
-    iterator insert(const_iterator pos, const_reference val)  { return emplace(pos, val);            }
-    iterator insert(const_iterator pos, rvalue_reference val) { return emplace(pos, std::move(val)); }
+    iterator insert(const_iterator pos, const_reference val)
+    {
+        return emplace(pos, val);
+    }
+    iterator insert(const_iterator pos, rvalue_reference val)
+    {
+        return emplace(pos, std::move(val));
+    }
     iterator insert(const_iterator pos, size_type cnt, const_reference val)
     {
         difference_type offset = pos - begin();
