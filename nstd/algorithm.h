@@ -14,6 +14,20 @@ namespace nstd
     template <typename T, typename Compare>
     constexpr const T& max(const T&, const T&, Compare cmp);
 
+    template <typename InputIter1, typename InputIter2>
+    constexpr bool equal(InputIter1, InputIter1, InputIter2);
+    template <typename InputIter1, typename InputIter2, typename BinaryPredicate>
+    constexpr bool equal(InputIter1, InputIter1, InputIter2, BinaryPredicate);
+    template <typename InputIter1, typename InputIter2>
+    constexpr bool equal(InputIter1, InputIter1, InputIter2, InputIter2);
+    template <typename InputIter1, typename InputIter2, typename BinaryPredicate>
+    constexpr bool equal(InputIter1, InputIter1, InputIter2, InputIter2, BinaryPredicate);
+
+    template <typename InputIter1, typename InputIter2>
+    constexpr bool lexicographical_compare(InputIter1, InputIter1, InputIter2, InputIter2);
+    template <typename InputIter1, typename InputIter2, typename Compare>
+    constexpr bool lexicographical_compare(InputIter1, InputIter1, InputIter2, InputIter2, Compare);
+
     template <typename OutputIter, typename T>
     OutputIter fill(OutputIter, OutputIter, const T&);
     template <typename OutputIter, typename Size, typename T>
@@ -107,6 +121,56 @@ constexpr const T& nstd::max(const T& a, const T& b, Compare cmp)
 {
     return cmp(a, b) ? b : a;
 }
+
+template <typename InputIter1, typename InputIter2>
+constexpr bool nstd::equal(InputIter1 first1, InputIter1 last1, InputIter2 first2)
+{
+    while (first1 != last1)
+        if (!(*first1++ == *first2++)) return false;
+    return true;
+}
+template <typename InputIter1, typename InputIter2, typename BinaryPredicate>
+constexpr bool nstd::equal(InputIter1 first1, InputIter1 last1, InputIter2 first2, BinaryPredicate p)
+{
+    while (first1 != last1)
+        if (!p(*first1++, *first2++)) return false;
+    return true;
+}
+template <typename InputIter1, typename InputIter2>
+constexpr bool nstd::equal(InputIter1 first1, InputIter1 last1, InputIter2 first2, InputIter2 last2)
+{
+    while (first1 != last1 && first2 != last2)
+        if (!(*first1++ == *first2++)) return false;
+    return first1 == last1 && first2 == last2;
+}
+template <typename InputIter1, typename InputIter2, typename BinaryPredicate>
+constexpr bool nstd::equal(InputIter1 first1, InputIter1 last1, InputIter2 first2, InputIter2 last2, BinaryPredicate p)
+{
+    while (first1 != last1 && first2 != last2)
+        if (!p(*first1++, *first2++)) return false;
+    return first1 == last1 && first2 == last2;
+}
+template <typename InputIter1, typename InputIter2>
+constexpr bool nstd::lexicographical_compare(InputIter1 first1, InputIter1 last1, InputIter2 first2, InputIter2 last2)
+{
+    while (first1 != last1 && first2 != last2)
+    {
+        if (*first1 < *first2) return true;
+        if (*first2++ < *first1++) return false;
+    }
+    return first1 == last1 && first2 != last2;
+}
+template <typename InputIter1, typename InputIter2, typename Compare>
+constexpr bool nstd::lexicographical_compare(InputIter1 first1, InputIter1 last1, InputIter2 first2, InputIter2 last2, Compare cmp)
+{
+    while (first1 != last1 && first2 != last2)
+    {
+        if (cmp(*first1, *first2)) return true;
+        if (cmp(*first2++, *first1++)) return false;
+    }
+    return first1 == last1 && first2 != last2;
+}
+
 template <typename OutputIter, typename T>
 OutputIter nstd::fill(OutputIter d_first, OutputIter d_last, const T& val)
 {

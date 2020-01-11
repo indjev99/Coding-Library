@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <exception>
+#include <cstdlib>
 #include "algorithm.h"
 
 namespace nstd { template <typename T> class vector; }
@@ -29,17 +30,17 @@ public:
     vector(size_type cnt) : size_(cnt), capacity_(size_)
     {
         data_ = allocate_data(capacity_);
-        nstd::construct(begin(), end());
+        construct(begin(), end());
     }
     vector(size_type cnt, const_reference val) : size_(cnt), capacity_(size_)
     {
         data_ = allocate_data(capacity_);
-        nstd::construct_fill(begin(), end(), val);
+        construct_fill(begin(), end(), val);
     }
     vector(const vector& other) : size_(other.size()), capacity_(size_)
     {
         data_ = allocate_data(capacity_);
-        nstd::construct_copy(other.begin(), other.end(), begin());
+        construct_copy(other.begin(), other.end(), begin());
     }
     vector(vector&& other) noexcept : size_(other.size_), capacity_(other.capacity_), data_(other.data_)
     {
@@ -48,12 +49,12 @@ public:
     vector(std::initializer_list<value_type> vals) : size_(vals.size()), capacity_(size_)
     {
         data_ = allocate_data(capacity_);
-        nstd::construct_copy(vals.begin(), vals.end(), begin());
+        construct_copy(vals.begin(), vals.end(), begin());
     }
     template <typename InputIter, typename = std::_RequireInputIter<InputIter>>
     vector(InputIter first, InputIter last) : vector()
     {
-        nstd::copy(first, last, std::back_insert_iterator<vector>(*this));
+        copy(first, last, std::back_insert_iterator<vector>(*this));
     }
 
     // Destructor
@@ -67,7 +68,7 @@ public:
     {
         if (this == &other) return *this;
         new_data(other.size());
-        nstd::construct_copy(other.begin(), other.end(), begin());
+        construct_copy(other.begin(), other.end(), begin());
         return *this;
     }
     vector& operator=(vector&& other) noexcept
@@ -83,18 +84,18 @@ public:
     void assign(size_type cnt, const_reference val)
     {
         new_data(cnt);
-        nstd::construct_fill_n(begin(), cnt, val);
+        construct_fill_n(begin(), cnt, val);
     }
     void assign(std::initializer_list<value_type> vals)
     {
         new_data(vals.size());
-        nstd::construct_copy(vals.begin(), vals.end(), begin());
+        construct_copy(vals.begin(), vals.end(), begin());
     }
     template <typename InputIter, typename = std::_RequireInputIter<InputIter>>
     void assign(InputIter first, InputIter last)
     {
         clear();
-        nstd::copy(first, last, std::back_insert_iterator<vector>(*this));
+        copy(first, last, std::back_insert_iterator<vector>(*this));
     }
 
     // Iterators
@@ -144,8 +145,8 @@ public:
         difference_type offset = pos - begin();
         iterator mid = shift_right(offset, cnt);
         iterator new_pos = iter_at(offset);
-        nstd::fill(new_pos, mid, val);
-        nstd::construct_fill(mid, new_pos + cnt, val);
+        fill(new_pos, mid, val);
+        construct_fill(mid, new_pos + cnt, val);
         return new_pos;
     }
     iterator insert(const_iterator pos, std::initializer_list<value_type> vals)
@@ -153,15 +154,15 @@ public:
         difference_type offset = pos - begin();
         iterator mid = shift_right(offset, vals.size());
         iterator new_pos = iter_at(offset);
-        auto curr = nstd::copy_to(vals.begin(), new_pos, mid);
-        nstd::construct_copy(curr, vals.end(), mid);
+        auto curr = copy_to(vals.begin(), new_pos, mid);
+        construct_copy(curr, vals.end(), mid);
         return new_pos;
     }
     template <typename InputIter, typename = std::_RequireInputIter<InputIter>>
     iterator insert(const_iterator pos, InputIter first, InputIter last)
     {
         difference_type offset = pos - begin();
-        nstd::copy(first, last, std::insert_iterator<vector>(*this, iter_at(offset)));
+        copy(first, last, std::insert_iterator<vector>(*this, iter_at(offset)));
         return iter_at(offset);
     }
     template <typename... Args>
@@ -203,7 +204,7 @@ public:
         else
         {
             expand(cnt);
-            nstd::construct(end(), iter_at(cnt));
+            construct(end(), iter_at(cnt));
             size_ = cnt;
         }
     }
@@ -213,7 +214,7 @@ public:
         else
         {
             expand(cnt);
-            nstd::construct_fill(end(), iter_at(cnt), val);
+            construct_fill(end(), iter_at(cnt), val);
             size_ = cnt;
         }
     }
@@ -232,12 +233,12 @@ private:
     }
     void shrink_resize(size_type cnt)
     {
-        nstd::destruct(iter_at(cnt), end());
+        destruct(iter_at(cnt), end());
         size_ = cnt;
     }
     size_type expand_size(size_type cnt)
     {
-        return nstd::max(capacity_ * 2, cnt);
+        return max(capacity_ * 2, cnt);
     }
     void expand(size_type cnt)
     {
@@ -245,7 +246,7 @@ private:
     }
     void shift_left(difference_type from, difference_type dist)
     {
-        nstd::move(iter_at(from), end(), iter_at(from - dist));
+        move(iter_at(from), end(), iter_at(from - dist));
         shrink_resize(size_ - dist);
     }
     iterator shift_right(difference_type from, difference_type dist)
@@ -255,8 +256,8 @@ private:
         {
             size_type new_capacity = expand_size(new_size);
             value_type* new_data = allocate_data(new_capacity);
-            nstd::construct_move(begin(), iter_at(from), new_data);
-            nstd::construct_move(iter_at(from), end(), new_data + from + dist);
+            construct_move(begin(), iter_at(from), new_data);
+            construct_move(iter_at(from), end(), new_data + from + dist);
             destroy_data();
             data_ = new_data;
             size_ = new_size;
@@ -265,10 +266,10 @@ private:
         }
         else
         {
-            size_type num = nstd::min(size_ - from, size_type(dist));
-            iterator mid = nstd::construct_move_backward_n(end(), num, iter_at(new_size));
-            nstd::move_backward(iter_at(from), iter_at(size_ - num), mid);
-            iterator ret = nstd::min(end(), iter_at(from + dist));
+            size_type num = min(size_ - from, size_type(dist));
+            iterator mid = construct_move_backward_n(end(), num, iter_at(new_size));
+            move_backward(iter_at(from), iter_at(size_ - num), mid);
+            iterator ret = min(end(), iter_at(from + dist));
             size_ = new_size;
             return ret;
         }
@@ -276,7 +277,7 @@ private:
     void change_capacity(size_type cnt)
     {
         value_type* new_data = allocate_data(cnt);
-        nstd::construct_move(data_, data_ + size_, new_data);
+        construct_move(data_, data_ + size_, new_data);
         destroy_data();
         data_ = new_data;
         capacity_ = cnt;
@@ -289,7 +290,7 @@ private:
     }
     void destroy_data()
     {
-        nstd::destruct(begin(), end());
+        destruct(begin(), end());
         deallocate_data(data_, capacity_);
     }
 
@@ -309,4 +310,40 @@ private:
     value_type* data_;
 };
 
-/// TO-DO: Overload operators and std::swap
+template <typename T>
+void std::swap(nstd::vector<T>& lhs, nstd::vector<T>& rhs)
+{
+    lhs.swap(rhs);
+}
+template <typename T>
+bool operator==(const nstd::vector<T>& lhs, const nstd::vector<T>& rhs)
+{
+    if (lhs.size() != rhs.size()) return false;
+    return nstd::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+template <typename T>
+bool operator!=(const nstd::vector<T>& lhs, const nstd::vector<T>& rhs)
+{
+    if (lhs.size() != rhs.size()) return true;
+    return !nstd::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+template <typename T>
+bool operator<(const nstd::vector<T>& lhs, const nstd::vector<T>& rhs)
+{
+    return nstd::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+template <typename T>
+bool operator<=(const nstd::vector<T>& lhs, const nstd::vector<T>& rhs)
+{
+    return !nstd::lexicographical_compare(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
+}
+template <typename T>
+bool operator>(const nstd::vector<T>& lhs, const nstd::vector<T>& rhs)
+{
+    return nstd::lexicographical_compare(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
+}
+template <typename T>
+bool operator>=(const nstd::vector<T>& lhs, const nstd::vector<T>& rhs)
+{
+    return !nstd::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
