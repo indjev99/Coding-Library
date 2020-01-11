@@ -11,6 +11,7 @@ public:
     typedef T                                     value_type;
     typedef value_type&                           reference;
     typedef const value_type&                     const_reference;
+    typedef value_type&&                          rvalue_reference;
     typedef value_type*                           pointer;
     typedef const value_type*                     const_pointer;
     typedef size_t                                size_type;
@@ -20,7 +21,7 @@ private:
 
     struct node
     {
-        value_type* val;
+        pointer val;
         node* next;
         node* prev;
     };
@@ -105,9 +106,9 @@ public:
 
     // Modifiers
     void push_back(const_reference val)    { create_node(&dummy, val);                }
-    void push_back(value_type&& val)       { create_node(&dummy, std::move(val));     }
+    void push_back(rvalue_reference val)   { create_node(&dummy, std::move(val));     }
     void push_front(const_reference val)   { create_node(dummy.next, val);            }
-    void push_front(value_type&& val)      { create_node(dummy.next, std::move(val)); }
+    void push_front(rvalue_reference val)  { create_node(dummy.next, std::move(val)); }
     void pop_back()                        { remove_node(dummy.prev);                 }
     void pop_front()                       { remove_node(dummy.next);                 }
 
@@ -115,16 +116,16 @@ private:
 
     node* create_node(node* loc, const_reference val)
     {
-        ++size_;
-        node* curr =  new node{new value_type(val), loc, loc->prev};
-        curr->prev->next = curr;
-        curr->next->prev = curr;
-        return curr;
+        return create_node_only(loc, new value_type(val));
     }
-    node* create_node(node* loc, value_type&& val)
+    node* create_node(node* loc, rvalue_reference val)
+    {
+        return create_node_only(loc, new value_type(std::move(val)));
+    }
+    node* create_node_only(node* loc, pointer val)
     {
         ++size_;
-        node* curr =  new node{new value_type(std::move(val)), loc, loc->prev};
+        node* curr =  new node{val, loc, loc->prev};
         curr->prev->next = curr;
         curr->next->prev = curr;
         return curr;

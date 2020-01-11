@@ -16,6 +16,7 @@ public:
     typedef T                                     value_type;
     typedef value_type&                           reference;
     typedef const value_type&                     const_reference;
+    typedef value_type&&                          rvalue_reference;
     typedef value_type*                           pointer;
     typedef const value_type*                     const_pointer;
     typedef size_t                                size_type;
@@ -135,11 +136,11 @@ public:
     // Modifiers
     void clear()                           noexcept { shrink_resize(0);             }
     void push_back(const_reference val)             { emplace_back(val);            }
-    void push_back(value_type&& val)                { emplace_back(std::move(val)); }
+    void push_back(rvalue_reference val)            { emplace_back(std::move(val)); }
     void pop_back()                                 { data_[--size_].~value_type(); }
 
-    iterator insert(const_iterator pos, const_reference val) { return emplace(pos, val);            }
-    iterator insert(const_iterator pos, value_type&& val)    { return emplace(pos, std::move(val)); }
+    iterator insert(const_iterator pos, const_reference val)  { return emplace(pos, val);            }
+    iterator insert(const_iterator pos, rvalue_reference val) { return emplace(pos, std::move(val)); }
     iterator insert(const_iterator pos, size_type cnt, const_reference val)
     {
         difference_type offset = pos - begin();
@@ -255,7 +256,7 @@ private:
         if (capacity_ < new_size)
         {
             size_type new_capacity = expand_size(new_size);
-            value_type* new_data = allocate_data(new_capacity);
+            pointer new_data = allocate_data(new_capacity);
             nstd::construct_move(begin(), iter_at(from), new_data);
             nstd::construct_move(iter_at(from), end(), new_data + from + dist);
             destroy_data();
@@ -276,7 +277,7 @@ private:
     }
     void change_capacity(size_type cnt)
     {
-        value_type* new_data = allocate_data(cnt);
+        pointer new_data = allocate_data(cnt);
         nstd::construct_move(data_, data_ + size_, new_data);
         destroy_data();
         data_ = new_data;
@@ -294,11 +295,11 @@ private:
         deallocate_data(data_, capacity_);
     }
 
-    static value_type* allocate_data(size_type cnt)
+    static pointer allocate_data(size_type cnt)
     {
-        return static_cast<value_type*>(::operator new(cnt * sizeof(value_type)));
+        return static_cast<pointer>(::operator new(cnt * sizeof(value_type)));
     }
-    static void deallocate_data(value_type* data, size_type cnt)
+    static void deallocate_data(pointer data, size_type cnt)
     {
         ::operator delete(data);
     }
@@ -307,7 +308,7 @@ private:
 
     size_type size_;
     size_type capacity_;
-    value_type* data_;
+    pointer data_;
 };
 
 template <typename T>
