@@ -233,6 +233,7 @@ public:
 
 private:
 
+    // Utility functions
     iterator iter_at(size_type idx)
     {
         return data_ + idx;
@@ -300,6 +301,7 @@ private:
         deallocate_data(data_, capacity_);
     }
 
+    // Data management
     static pointer allocate_data(size_type cnt)
     {
         return static_cast<pointer>(::operator new(cnt * sizeof(value_type)));
@@ -309,11 +311,12 @@ private:
         ::operator delete(data);
     }
 
+    // Leave in valid state on move
     void steal_contents() { size_ = 0; capacity_ = 0; data_ = nullptr; }
 
+    pointer data_;
     size_type size_;
     size_type capacity_;
-    pointer data_;
 };
 
 template <typename T>
