@@ -1,7 +1,6 @@
 #pragma once
 
-#include <iostream>
-using namespace std;
+#include <new>
 
 namespace nstd { template <typename T> class list; }
 
@@ -41,13 +40,15 @@ private:
         typedef ptrdiff_t                                                                difference_type;
 
         // Constructors
-        iterator_t() noexcept : ptr(nullptr) {}
-        template<bool Mut2, typename = std::enable_if_t<!Mutable || Mut2>>
+        iterator_t()                              noexcept : ptr(nullptr)   {}
+        iterator_t(const iterator_t& other)       noexcept : ptr(other.ptr) {}
+        template <bool Mut2, typename = std::enable_if_t<!Mutable && Mut2>>
         iterator_t(const iterator_t<Mut2>& other) noexcept : ptr(other.ptr) {}
 
         // Assignment
-        template<bool Mut2, typename = std::enable_if_t<!Mutable || Mut2>>
-        iterator_t& operator=(const iterator_t<Mut2>& other) { ptr = other.ptr; return *this; }
+        iterator_t& operator=(const iterator_t other)        noexcept { ptr = other.ptr; return *this; }
+        template <bool Mut2, typename = std::enable_if_t<!Mutable && Mut2>>
+        iterator_t& operator=(const iterator_t<Mut2>& other) noexcept { ptr = other.ptr; return *this; }
 
         // Access
         reference operator*() const { return *ptr->val; }
@@ -60,8 +61,10 @@ private:
         iterator_t operator--(int)  noexcept { iterator_t temp = *this; ptr = ptr->prev; return temp; }
 
         // Comparisons
-        bool operator==(const iterator_t& other) noexcept { return ptr == other.ptr; }
-        bool operator!=(const iterator_t& other) noexcept { return ptr != other.ptr; }
+        template<bool Mut2>
+        bool operator==(const iterator_t<Mut2>& other) const noexcept { cerr << "cmp" << endl; return ptr == other.ptr; }
+        template<bool Mut2>
+        bool operator!=(const iterator_t<Mut2>& other) const noexcept { return ptr != other.ptr; }
 
     private:
 
@@ -69,7 +72,7 @@ private:
         typedef typename std::conditional<Mutable, node*, const node*>::type node_ptr;
 
         // Internal constructor
-        iterator_t(node* ptr) noexcept : ptr(ptr) {}
+        iterator_t(node_ptr ptr) noexcept : ptr(ptr) {}
 
         node_ptr ptr;
 
