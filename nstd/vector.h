@@ -234,16 +234,16 @@ public:
 private:
 
     // Utility functions
-    iterator iter_at(size_type idx)
+    iterator iter_at(size_type idx) noexcept
     {
         return data_ + idx;
     }
-    void shrink_resize(size_type cnt)
+    void shrink_resize(size_type cnt) noexcept
     {
         nstd::destruct(iter_at(cnt), end());
         size_ = cnt;
     }
-    size_type expand_size(size_type cnt)
+    size_type expand_size(size_type cnt) const noexcept
     {
         return nstd::max(capacity_ * 2, cnt);
     }
@@ -295,7 +295,7 @@ private:
         reserve(cnt);
         size_ = cnt;
     }
-    void destroy_data()
+    void destroy_data() noexcept
     {
         nstd::destruct(begin(), end());
         deallocate_data(data_, capacity_);
