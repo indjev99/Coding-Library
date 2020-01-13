@@ -59,7 +59,7 @@ public:
     }
 
     // Destructor
-    ~vector()
+    ~vector() noexcept
     {
         destroy_data();
     }

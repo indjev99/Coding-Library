@@ -91,7 +91,7 @@ public:
     list() noexcept                      : size_(0) { new(&dummy) node{nullptr, &dummy, &dummy}; }
 
     // Destructor
-    ~list()                                         { while (size_ > 0) pop_back(); }
+    ~list()                                noexcept { while (size_ > 0) pop_back(); }
 
     // Iterators
     iterator begin()                       noexcept { return iterator(dummy.next);       }
@@ -139,12 +139,12 @@ private:
     node* create_node_only(node* loc, pointer val)
     {
         ++size_;
-        node* curr =  new node{val, loc, loc->prev};
+        node* curr = new node{val, loc, loc->prev};
         curr->prev->next = curr;
         curr->next->prev = curr;
         return curr;
     }
-    void remove_node(node* curr)
+    void remove_node(node* curr) noexcept
     {
         --size_;
         curr->prev->next = curr->next;
